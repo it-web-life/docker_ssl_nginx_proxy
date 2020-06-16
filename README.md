@@ -1,6 +1,9 @@
 # docker-ssl-nginx-proxy
 Make SSL using nginx-proxy with Docker
 
+詳細な記事:
+  [Docker環境で簡単にSSL化する方法を解説 【失敗しない初心者でもできる方法】](https://it-web-life.com/docker-ssl-nginx-proxy/)
+
 ## usage
 本リポジトリを`git clone`します。
 - `/development` はローカル開発環境用のコードです。SSLの認証局をローカルに設定しています。
