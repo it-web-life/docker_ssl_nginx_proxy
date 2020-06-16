@@ -1,0 +1,50 @@
+version: '3.7'
+
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy-test
+    privileged: true
+    environment:
+      - "DHPARAM_GENERATION=false"
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - container-link
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - proxy:/usr/share/nginx/html
+      - proxy:/etc/nginx/vhost.d
+      - ./docker/encrypt/certs:/etc/nginx/certs:ro
+      # - ./conf.d/proxy.conf:/etc/nginx/conf.d/proxy.conf:ro # 設定を上書きするときはconf.d内に「.conf」拡張子で追加する
+    restart: always
+    labels:
+      com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "true"
+
+  letsencrypt-nginx:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: letsencrypt-nginx-test
+    privileged: true
+    environment:
+      - NGINX_PROXY_CONTAINER=nginx-proxy-test # volume_fromを使わない時はコンテナを指定する必要がある
+    networks:
+      - container-link
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - proxy:/etc/nginx/vhost.d
+      - proxy:/usr/share/nginx/html
+      - ./docker/encrypt/certs:/etc/nginx/certs:rw
+    restart: always
+    depends_on:
+      - nginx-proxy
+
+networks:
+  default:
+    external:
+      name: bridge
+  container-link:
+    name: container_network
+
+volumes:
+  proxy:

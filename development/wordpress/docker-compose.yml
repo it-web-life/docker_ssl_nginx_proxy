@@ -1,0 +1,47 @@
+version: "3.7"
+
+services:
+  wordpress:
+    image: wordpress #WordPressのイメージ
+    container_name: wp-test-wordpress
+    # ports: # ポートの指定はnginx-proxyでするのでここではしない
+    #   - "80:80"
+    networks:
+      - container-link
+    volumes:
+      - ./html:/var/www/html #docker_wordpress/html にデータがマウントされる
+    environment:
+      - WORDPRESS_DB_NAME=wordpress_db #WordPressの設定
+      - WORDPRESS_DB_PASSWORD=mysql_password #WordPressの設定
+      - VIRTUAL_HOST=localhost # nginx-proxyのホスト設定 ※本番ではlocalhost部分を「example.com,www.example.com」等にする
+      - LETSENCRYPT_HOST=localhost # Let's Encryptのホスト設定 ※本番ではlocalhost部分を「example.com,www.example.com」等にする
+      - LETSENCRYPT_EMAIL=xxxx@gmail.com # Let's Encryptのメール設定
+      - LETSENCRYPT_TEST=true # Let's Encryptのテストかどうかのフラグ 本番ではfalseにする (指定しないとテスト扱いになる)
+      - CERT_NAME=default # ローカルで認証局を立てるときに使う ※本番ではLet's Encryptから直接取得するのでコメントアウトする
+      - HTTPS_METHOD=noredirect # リダイレクトを無効にする
+    depends_on:
+      - mysql
+    restart: always
+
+  mysql:
+    image: mariadb #MariaDBのイメージ
+    container_name: wp-test-mariadb
+    ports:
+      - "3306:3306" #MacのMySQLとポートがバッティングする場合は変える 例) - "33060:3306"
+    networks:
+      - container-link
+    volumes:
+      - db_test_mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql_password
+    restart: always
+
+networks:
+  default:
+    external:
+      name: bridge
+  container-link:
+    name: container_network
+
+volumes:
+  db_test_mysql:
